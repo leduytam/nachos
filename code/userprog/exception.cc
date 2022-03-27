@@ -48,6 +48,10 @@
 //	is in machine.h.
 //----------------------------------------------------------------------
 
+// TODO: prototypes of syscall handler
+void SyscallHaltExceptionHandler();
+void SyscallAddExceptionHandler();
+
 void
 ExceptionHandler(ExceptionType which)
 {
@@ -57,53 +61,69 @@ ExceptionHandler(ExceptionType which)
 
     switch (which) {
     case SyscallException:
-      switch(type) {
-      case SC_Halt:
-	DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
+        // TODO: implement all syscall exceptions
+        switch (type) {
+        case SC_Halt:
+            return SyscallHaltExceptionHandler();
+        case SC_Add:
+            return SyscallAddExceptionHandler();
+        default:
+            cerr << "Unexpected system call " << type << "\n";
+            break;
+        }
+        break;
 
-	SysHalt();
-
-	ASSERTNOTREACHED();
-	break;
-
-      case SC_Add:
-	DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
-	
-	/* Process SysAdd Systemcall*/
-	int result;
-	result = SysAdd(/* int op1 */(int)kernel->machine->ReadRegister(4),
-			/* int op2 */(int)kernel->machine->ReadRegister(5));
-
-	DEBUG(dbgSys, "Add returning with " << result << "\n");
-	/* Prepare Result */
-	kernel->machine->WriteRegister(2, (int)result);
-	
-	/* Modify return point */
-	{
-	  /* set previous programm counter (debugging only)*/
-	  kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
-
-	  /* set programm counter to next instruction (all Instructions are 4 byte wide)*/
-	  kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
-	  
-	  /* set next programm counter for brach execution */
-	  kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg)+4);
-	}
-
-	return;
-	
-	ASSERTNOTREACHED();
-
-	break;
-
-      default:
-	cerr << "Unexpected system call " << type << "\n";
-	break;
-      }
-      break;
+    case PageFaultException:
+    case ReadOnlyException:
+    case BusErrorException:
+    case AddressErrorException:
+    case OverflowException:
+    case IllegalInstrException:
+    case NumExceptionTypes:
+        cerr << "Error " << which << " error occurs" << "\n";
+        SysHalt();
+        ASSERTNOTREACHED();
     default:
-      cerr << "Unexpected user mode exception" << (int)which << "\n";
-      break;
+        cerr << "Unexpected user mode exception" << (int)which << "\n";
+        break;
     }
     ASSERTNOTREACHED();
+}
+
+// move program counter to next instruction
+void MovePC() {
+    /* set previous programm counter (debugging only)*/
+    kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
+
+    /* set programm counter to next instruction (all Instructions are 4 byte wide)*/
+    kernel->machine->WriteRegister(PCReg, kernel->machine->ReadRegister(PCReg) + 4);
+
+    /* set next programm counter for brach execution */
+    kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
+}
+
+// TODO: implements all syscall handlers here
+void SyscallHaltExceptionHandler()
+{
+    DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
+
+    SysHalt();
+
+    ASSERTNOTREACHED();
+}
+
+void SyscallAddExceptionHandler()
+{
+    DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
+
+    /* Process SysAdd Systemcall*/
+    int result;
+    result = SysAdd(/* int op1 */(int)kernel->machine->ReadRegister(4),
+        /* int op2 */(int)kernel->machine->ReadRegister(5));
+
+    DEBUG(dbgSys, "Add returning with " << result << "\n");
+    /* Prepare Result */
+    kernel->machine->WriteRegister(2, (int)result);
+
+    return MovePC();
 }
