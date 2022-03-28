@@ -2,7 +2,7 @@
  *
  * userprog/ksyscall.h
  *
- * Kernel interface for systemcalls 
+ * Kernel interface for systemcalls
  *
  * by Marcus Voelp  (c) Universitaet Karlsruhe
  *
@@ -14,17 +14,15 @@
 #include "kernel.h"
 
 
-
-
 void SysHalt()
 {
-  kernel->interrupt->Halt();
+    kernel->interrupt->Halt();
 }
 
 
 int SysAdd(int op1, int op2)
 {
-  return op1 + op2;
+    return op1 + op2;
 }
 
 

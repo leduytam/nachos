@@ -49,8 +49,21 @@
 //----------------------------------------------------------------------
 
 // TODO: prototypes of syscall handler
-void SyscallHaltExceptionHandler();
-void SyscallAddExceptionHandler();
+void SysHaltHandler();
+void SysAddHandler();
+void SysReadNumHandler();
+void SysPrintNumHandler();
+void SysReadCharHandler();
+void SysPrintCharHandler();
+void SysRandomNumHandler();
+void SysReadStringHandler();
+void SysPrintStringHandler();
+void SysCreateHandler();
+void SysOpenHandler();
+void SysCloseHandler();
+void SysReadHandler();
+void SysSeekHandler();
+void SysRemoveHandler();
 
 void
 ExceptionHandler(ExceptionType which)
@@ -64,9 +77,35 @@ ExceptionHandler(ExceptionType which)
         // TODO: implement all syscall exceptions
         switch (type) {
         case SC_Halt:
-            return SyscallHaltExceptionHandler();
+            return SysHaltHandler();
         case SC_Add:
-            return SyscallAddExceptionHandler();
+            return SysAddHandler();
+        case SC_ReadNum:
+            return SysReadNumHandler();
+        case SC_PrintNum:
+            return SysPrintNumHandler();
+        case SC_ReadChar:
+            return SysReadCharHandler();
+        case SC_PrintChar:
+            return SysPrintCharHandler();
+        case SC_RandomNum:
+            return SysRandomNumHandler();
+        case SC_ReadString:
+            return SysReadStringHandler();
+        case SC_PrintString:
+            return SysPrintStringHandler();
+        case SC_Create:
+            return SysCreateHandler();
+        case SC_Open:
+            return SysOpenHandler();
+        case SC_Close:
+            return SysCloseHandler();
+        case SC_Read:
+            return SysReadHandler();
+        case SC_Seek:
+            return SysSeekHandler();
+        case SC_Remove:
+            return SysRemoveHandler();
         default:
             cerr << "Unexpected system call " << type << "\n";
             break;
@@ -80,7 +119,7 @@ ExceptionHandler(ExceptionType which)
     case OverflowException:
     case IllegalInstrException:
     case NumExceptionTypes:
-        cerr << "Error " << which << " error occurs" << "\n";
+        cerr << "An error occurs. Error Code: " << which << "\n";
         SysHalt();
         ASSERTNOTREACHED();
     default:
@@ -90,8 +129,8 @@ ExceptionHandler(ExceptionType which)
     ASSERTNOTREACHED();
 }
 
-// move program counter to next instruction
-void MovePC() {
+// increase program counter to next instruction
+void IncreasePC() {
     /* set previous programm counter (debugging only)*/
     kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
 
@@ -103,7 +142,7 @@ void MovePC() {
 }
 
 // TODO: implements all syscall handlers here
-void SyscallHaltExceptionHandler()
+void SysHaltHandler()
 {
     DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
 
@@ -112,7 +151,7 @@ void SyscallHaltExceptionHandler()
     ASSERTNOTREACHED();
 }
 
-void SyscallAddExceptionHandler()
+void SysAddHandler()
 {
     DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
 
@@ -125,5 +164,70 @@ void SyscallAddExceptionHandler()
     /* Prepare Result */
     kernel->machine->WriteRegister(2, (int)result);
 
-    return MovePC();
+    return IncreasePC();
+}
+
+void SysReadNumHandler()
+{
+    return IncreasePC();
+}
+
+void SysPrintNumHandler()
+{
+    return IncreasePC();
+}
+
+void SysReadCharHandler()
+{
+    return IncreasePC();
+}
+
+void SysPrintCharHandler()
+{
+    return IncreasePC();
+}
+
+void SysRandomNumHandler()
+{
+    return IncreasePC();
+}
+
+void SysReadStringHandler()
+{
+    return IncreasePC();
+}
+
+void SysPrintStringHandler()
+{
+    return IncreasePC();
+}
+
+void SysCreateHandler()
+{
+    return IncreasePC();
+}
+
+void SysOpenHandler()
+{
+    return IncreasePC();
+}
+
+void SysCloseHandler()
+{
+    return IncreasePC();
+}
+
+void SysReadHandler()
+{
+    return IncreasePC();
+}
+
+void SysSeekHandler()
+{
+    return IncreasePC();
+}
+
+void SysRemoveHandler()
+{
+    return IncreasePC();
 }
