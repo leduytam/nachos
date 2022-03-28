@@ -62,6 +62,7 @@ void SysCreateHandler();
 void SysOpenHandler();
 void SysCloseHandler();
 void SysReadHandler();
+void SysWriteHandler();
 void SysSeekHandler();
 void SysRemoveHandler();
 
@@ -102,6 +103,8 @@ ExceptionHandler(ExceptionType which)
             return SysCloseHandler();
         case SC_Read:
             return SysReadHandler();
+        case SC_Write:
+            return SysWriteHandler();
         case SC_Seek:
             return SysSeekHandler();
         case SC_Remove:
@@ -169,31 +172,37 @@ void SysAddHandler()
 
 void SysReadNumHandler()
 {
+    kernel->machine->WriteRegister(2, (int)SysReadNum());
     return IncreasePC();
 }
 
 void SysPrintNumHandler()
 {
+    SysPrintNum((int)kernel->machine->ReadRegister(4));
     return IncreasePC();
 }
 
 void SysReadCharHandler()
 {
+    kernel->machine->WriteRegister(2, (int)SysReadChar());
     return IncreasePC();
 }
 
 void SysPrintCharHandler()
 {
+    SysPrintChar((char)kernel->machine->ReadRegister(4));
     return IncreasePC();
 }
 
 void SysRandomNumHandler()
 {
+    kernel->machine->WriteRegister(2, (int)SysRandomNum());
     return IncreasePC();
 }
 
 void SysReadStringHandler()
 {
+    SysReadString((char*)kernel->machine->ReadRegister(4), (int)kernel->machine->ReadRegister(5));
     return IncreasePC();
 }
 
@@ -218,6 +227,11 @@ void SysCloseHandler()
 }
 
 void SysReadHandler()
+{
+    return IncreasePC();
+}
+
+void SysWriteHandler()
 {
     return IncreasePC();
 }

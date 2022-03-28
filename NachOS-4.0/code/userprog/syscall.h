@@ -112,8 +112,8 @@ typedef int OpenFileId;
  * the console device.
  */
 
-#define ConsoleInput	0  
-#define ConsoleOutput	1  
+#define ConsoleInputID 0 // changed name to avoid duplicate
+#define ConsoleOutputID	1 // changed name to avoid duplicate
 
  /* Create a Nachos file, with name "name" */
  /* Note: Create does not open the file.   */
