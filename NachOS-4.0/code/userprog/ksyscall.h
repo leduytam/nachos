@@ -128,39 +128,107 @@ int SysCreate(char* name)
 {
     if (name == NULL)
     {
-        DEBUG(dbgSys, "SysCreate: Not enough memory to create file");
+        DEBUG(dbgFile, "SysCreate: Not enough memory to create file");
         return -1;
     }
 
     if (strlen(name) == 0)
     {
-        DEBUG(dbgSys, "SysCreate: File name is empty\n");
+        DEBUG(dbgFile, "SysCreate: File name is empty\n");
     }
 
     if (!kernel->fileSystem->Create(name))
     {
-        DEBUG(dbgSys, "SysCreate: Failed to create " << name << "\n");
+        DEBUG(dbgFile, "SysCreate: Failed to create " << name << "\n");
         return -1;
     }
 
-    DEBUG(dbgSys, "SysCreate: Created " << name << "\n");
+    DEBUG(dbgFile, "SysCreate: Created " << name << "\n");
 
     return 0;
 }
 
 OpenFileId SysOpen(char* name)
 {
+    if (name == NULL)
+    {
+        DEBUG(dbgFile, "SysOpen: Not enough memory to open file");
+        return -1;
+    }
+
+    if (strlen(name) == 0)
+    {
+        DEBUG(dbgFile, "SysOpen: File name is empty\n");
+        return -1;
+    }
+
+    int id = kernel->fileSystem->GetOpenFileId();
+
+    if (id == -1)
+    {
+        DEBUG(dbgFile, "SysOpen: Failed to open " << name << ". Number of opening files is maximum\n");
+        return -1;
+    }
+
+    OpenFile* file = kernel->fileSystem->Open(name);
+
+    if (file == NULL)
+    {
+        DEBUG(dbgFile, "SysOpen: Failed to open " << name << "\n");
+        return -1;
+    }
+
+    kernel->fileSystem->openingFiles[id] = file;
+
     return 0;
 }
 
 int SysClose(OpenFileId id)
 {
+    if (id < 2 || id >= MAX_OPEN_FILES)
+    {
+        DEBUG(dbgFile, "SysClose: Invalid file id\n");
+        return -1;
+    }
+
+    if (kernel->fileSystem->openingFiles[id] == NULL)
+    {
+        DEBUG(dbgFile, "SysClose: File with id " << id << " is not opened\n");
+        return -1;
+    }
+
+    kernel->fileSystem->Close(id);
+
     return 0;
 }
 
 int SysRead(char* buffer, int size, OpenFileId id)
 {
-    return 0;
+    if (buffer == NULL)
+    {
+        DEBUG(dbgFile, "SysRead: Not enough memory to read file");
+        return -1;
+    }
+
+    if (size <= 0)
+    {
+        DEBUG(dbgFile, "SysRead: Invalid size\n");
+        return -1;
+    }
+
+    if (id < 2 || id >= MAX_OPEN_FILES)
+    {
+        DEBUG(dbgFile, "SysRead: Invalid file id\n");
+        return -1;
+    }
+
+    if (kernel->fileSystem->openingFiles[id] == NULL)
+    {
+        DEBUG(dbgFile, "SysRead: File with id " << id << " is not opened\n");
+        return -1;
+    }
+
+    return kernel->fileSystem->openingFiles[id]->Read(buffer, size);
 }
 
 int SysWrite(char* buffer, int size, OpenFileId id)
@@ -170,11 +238,43 @@ int SysWrite(char* buffer, int size, OpenFileId id)
 
 int SysSeek(int position, OpenFileId id)
 {
-    return 0;
+    if (id < 2 || id >= MAX_OPEN_FILES)
+    {
+        DEBUG(dbgFile, "SysSeek: Invalid file id\n");
+        return -1;
+    }
+
+    if (kernel->fileSystem->openingFiles[id] == NULL)
+    {
+        DEBUG(dbgFile, "SysSeek: File with id " << id << " is not opened\n");
+        return -1;
+    }
+
+    return kernel->fileSystem->Seek(position, id);
 }
 
 int SysRemove(char* name)
 {
+    if (name == NULL)
+    {
+        DEBUG(dbgFile, "SysRemove: Not enough memory to remove file");
+        return -1;
+    }
+
+    if (strlen(name) == 0)
+    {
+        DEBUG(dbgFile, "SysRemove: File name is empty\n");
+        return -1;
+    }
+
+    if (!kernel->fileSystem->Remove(name))
+    {
+        DEBUG(dbgFile, "SysRemove: Failed to remove " << name << "\n");
+        return -1;
+    }
+
+    DEBUG(dbgFile, "SysRemove: Removed " << name << "\n");
+
     return 0;
 }
 

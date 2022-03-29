@@ -37,33 +37,127 @@
 #include "sysdep.h"
 #include "openfile.h"
 
-#ifdef FILESYS_STUB 
+#define MAX_OPEN_FILES 10
+#define CONSOLE_INPUT 0
+#define CONSOLE_OUTUT 1
+
+#ifndef FILESYS_STUB 
+
+typedef int OpenFileId;
 // Temporarily implement file system calls as 
 // calls to UNIX, until the real file system
 // implementation is available
+
 class FileSystem {
 public:
-    FileSystem() {}
+    OpenFile** openingFiles;
 
-    bool Create(char* name) {
-        int fileDescriptor = OpenForWrite(name);
+    FileSystem()
+    {
+        openingFiles = new OpenFile * [MAX_OPEN_FILES];
 
-        if (fileDescriptor == -1) return FALSE;
-        Close(fileDescriptor);
-        return TRUE;
+        for (int i = 0; i < MAX_OPEN_FILES; i++)
+            openingFiles[i] = NULL;
     }
 
-    OpenFile* Open(char* name) {
-        int fileDescriptor = OpenForReadWrite(name, FALSE);
+    ~FileSystem()
+    {
+        for (int i = 0; i < MAX_OPEN_FILES; i++)
+            if (openingFiles[i] != NULL)
+                delete openingFiles[i];
+        delete[] openingFiles;
+    }
+
+    bool Create(char* name)
+    {
+        int fileDescriptor = OpenForWrite(name);
+
+        if (fileDescriptor == -1) return false;
+        Close(fileDescriptor);
+        return true;
+    }
+
+    OpenFile* Open(char* name)
+    {
+        int fileDescriptor = OpenForReadWrite(name, false);
 
         if (fileDescriptor == -1) return NULL;
         return new OpenFile(fileDescriptor);
     }
 
-    bool Remove(char* name) { return Unlink(name) == 0; }
+    bool Close(OpenFileId id)
+    {
+        if (id < 2 || id >= MAX_OPEN_FILES)
+            return false;
+
+        if (openingFiles[id] == NULL)
+            return false;
+
+        delete openingFiles[id];
+        openingFiles[id] = NULL;
+
+        return true;
+    }
+
+    OpenFileId GetOpenFileId()
+    {
+        for (int i = 2; i < MAX_OPEN_FILES; i++)
+            if (openingFiles[i] == NULL)
+                return i;
+        return -1;
+    }
+
+    bool Remove(char* name)
+    {
+        return Unlink(name) == 0;
+    }
+
+    int Read(char* buffer, int size, OpenFileId id)
+    {
+        if (id < 2 || id >= MAX_OPEN_FILES)
+            return -1;
+
+        if (openingFiles[id] == NULL)
+            return -1;
+
+        return openingFiles[id]->Read(buffer, size);
+    }
+
+    int Write(char* buffer, int size, OpenFileId id)
+    {
+        if (id < 2 || id >= MAX_OPEN_FILES)
+            return -1;
+
+        if (openingFiles[id] == NULL)
+            return -1;
+
+        return openingFiles[id]->Write(buffer, size);
+    }
+
+    int Seek(int position, OpenFileId id)
+    {
+        if (id < 2 || id >= MAX_OPEN_FILES)
+            return -1;
+
+        if (openingFiles[id] == NULL)
+            return -1;
+
+        if (position < -1)
+            return -1;
+
+        int fileSize = openingFiles[id]->Length();
+
+        if (position == -1 || position > fileSize)
+            position = fileSize;
+
+        openingFiles[id]->Seek(position);
+
+        return position;
+    }
 };
 
 #else // FILESYS
+
 class FileSystem {
 public:
     FileSystem(bool format);		// Initialize the file system.
