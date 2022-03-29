@@ -47,18 +47,31 @@
 #ifndef IN_ASM
 
   /* The system call interface.  These are the operations the Nachos
-   * kernel needs to support, to be able to run user programs.
-   *
-   * Each of these is invoked by a user program by simply calling the
-   * procedure; an assembly language stub stuffs the system call code
-   * into a register, and traps to the kernel.  The kernel procedures
-   * are then invoked in the Nachos kernel, after appropriate error checking,
-   * from the system call entry point in exception.cc.
-   */
+  * kernel needs to support, to be able to run user programs.
+  *
+  * Each of these is invoked by a user program by simply calling the
+  * procedure; an assembly language stub stuffs the system call code
+  * into a register, and traps to the kernel.  The kernel procedures
+  * are then invoked in the Nachos kernel, after appropriate error checking,
+  * from the system call entry point in exception.cc.
+  */
 
-   /* Stop Nachos, and print out performance stats */
+  /* Stop Nachos, and print out performance stats */
 void Halt();
 
+int ReadNum();
+
+void PrintNum(int number);
+
+char ReadChar();
+
+void PrintChar(char character);
+
+int RandomNum();
+
+void ReadString(char buffer[], int length);
+
+void PrintString(char buffer[]);
 
 /*
  * Add the two operants and return the result

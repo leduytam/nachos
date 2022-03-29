@@ -48,7 +48,10 @@
 //	is in machine.h.
 //----------------------------------------------------------------------
 
-// TODO: prototypes of syscall handler
+char* User2System(int addr);
+char* User2System(int addr, int length);
+int System2User(int addr, int length, char* buffer);
+
 void SysHaltHandler();
 void SysAddHandler();
 void SysReadNumHandler();
@@ -74,8 +77,9 @@ ExceptionHandler(ExceptionType which)
     DEBUG(dbgSys, "Received Exception " << which << " type: " << type << "\n");
 
     switch (which) {
+    case NoException:
+        return;
     case SyscallException:
-        // TODO: implement all syscall exceptions
         switch (type) {
         case SC_Halt:
             return SysHaltHandler();
@@ -132,8 +136,81 @@ ExceptionHandler(ExceptionType which)
     ASSERTNOTREACHED();
 }
 
+char* User2System(int addr)
+{
+    char* buffer = NULL;
+    int length = 0;
+    int c;
+
+    while (true)
+    {
+        if (!kernel->machine->ReadMem(addr + length, 1, &c))
+            return NULL;
+
+        if (c == '\0')
+            break;
+
+        length++;
+    }
+
+    buffer = new char[length + 1];
+
+    if (buffer == NULL)
+        return NULL;
+
+    buffer[length] = '\0';
+
+    for (int i = 0; i < length; i++)
+    {
+        if (!kernel->machine->ReadMem(addr + i, 1, &c))
+        {
+            delete[] buffer;
+            return NULL;
+        }
+
+        buffer[i] = (char)c;
+    }
+
+    return buffer;
+}
+
+char* User2System(int addr, int length)
+{
+    if (length <= 0)
+        return NULL;
+
+    char* buffer = new char[length + 1];
+
+    if (buffer == NULL)
+        return NULL;
+
+    buffer[length] = '\0';
+
+    for (int i = 0, c = 0; i < length; i++) {
+        if (!kernel->machine->ReadMem(addr + i, 1, &c))
+        {
+            delete[] buffer;
+            return NULL;
+        }
+
+        buffer[i] = (char)c;
+    }
+
+    return buffer;
+}
+
+void System2User(int addr, char* buffer, int length)
+{
+    if (length <= 0)
+        return;
+
+    for (int i = 0; i < length; i++)
+        kernel->machine->WriteMem(addr + i, 1, buffer[i]);
+}
+
 // increase program counter to next instruction
-void IncreasePC() {
+void IncreasePC()
+{
     /* set previous programm counter (debugging only)*/
     kernel->machine->WriteRegister(PrevPCReg, kernel->machine->ReadRegister(PCReg));
 
@@ -182,6 +259,7 @@ void SysPrintNumHandler()
     return IncreasePC();
 }
 
+// TODO: check input empty char
 void SysReadCharHandler()
 {
     kernel->machine->WriteRegister(2, (int)SysReadChar());
@@ -202,46 +280,111 @@ void SysRandomNumHandler()
 
 void SysReadStringHandler()
 {
-    SysReadString((char*)kernel->machine->ReadRegister(4), (int)kernel->machine->ReadRegister(5));
+    int addr = kernel->machine->ReadRegister(4);
+    int length = kernel->machine->ReadRegister(5);
+    char* buffer = User2System(addr, length);
+
+    SysReadString(buffer, length);
+
+    delete[] buffer;
+
     return IncreasePC();
 }
 
 void SysPrintStringHandler()
 {
+    int addr = kernel->machine->ReadRegister(4);
+    char* buffer = User2System(addr);
+
+    SysPrintString(buffer);
+
+    delete[] buffer;
+
     return IncreasePC();
 }
 
 void SysCreateHandler()
 {
+    int addr = kernel->machine->ReadRegister(4);
+    char* buffer = User2System(addr);
+
+    kernel->machine->WriteRegister(2, (int)SysCreate(buffer));
+
+    delete[] buffer;
+
     return IncreasePC();
 }
 
 void SysOpenHandler()
 {
+    int addr = kernel->machine->ReadRegister(4);
+    char* buffer = User2System(addr);
+
+    kernel->machine->WriteRegister(2, (int)SysOpen(buffer));
+
+    delete[] buffer;
+
     return IncreasePC();
 }
 
 void SysCloseHandler()
 {
+    int id = kernel->machine->ReadRegister(4);
+
+    kernel->machine->WriteRegister(2, (int)SysClose(id));
+
     return IncreasePC();
 }
 
 void SysReadHandler()
 {
+    int addr = kernel->machine->ReadRegister(4);
+    int size = kernel->machine->ReadRegister(5);
+    int id = kernel->machine->ReadRegister(6);
+
+    char* buffer = User2System(addr, size);
+
+    kernel->machine->WriteRegister(2, (int)SysRead(buffer, size, id));
+
+    delete[] buffer;
+
     return IncreasePC();
 }
 
 void SysWriteHandler()
 {
+    int addr = kernel->machine->ReadRegister(4);
+    int size = kernel->machine->ReadRegister(5);
+    int id = kernel->machine->ReadRegister(6);
+
+    char* buffer = User2System(addr, size);
+
+    kernel->machine->WriteRegister(2, (int)SysWrite(buffer, size, id));
+
+    delete[] buffer;
+
     return IncreasePC();
 }
 
 void SysSeekHandler()
 {
+    int position = kernel->machine->ReadRegister(4);
+    int id = kernel->machine->ReadRegister(5);
+
+    kernel->machine->WriteRegister(2, (int)SysSeek(position, id));
+
     return IncreasePC();
 }
 
 void SysRemoveHandler()
 {
+    int addr = kernel->machine->ReadRegister(4);
+
+    char* buffer = User2System(addr);
+
+    kernel->machine->WriteRegister(2, (int)SysRemove(buffer));
+
+    delete[] buffer;
+
     return IncreasePC();
 }

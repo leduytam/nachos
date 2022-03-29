@@ -41,7 +41,7 @@
 #define CONSOLE_INPUT 0
 #define CONSOLE_OUTUT 1
 
-#ifndef FILESYS_STUB 
+#ifdef FILESYS_STUB 
 
 typedef int OpenFileId;
 // Temporarily implement file system calls as 
@@ -82,7 +82,7 @@ public:
         int fileDescriptor = OpenForReadWrite(name, false);
 
         if (fileDescriptor == -1) return NULL;
-        return new OpenFile(fileDescriptor);
+        return new OpenFile(fileDescriptor, name);
     }
 
     bool Close(OpenFileId id)
@@ -142,17 +142,7 @@ public:
         if (openingFiles[id] == NULL)
             return -1;
 
-        if (position < -1)
-            return -1;
-
-        int fileSize = openingFiles[id]->Length();
-
-        if (position == -1 || position > fileSize)
-            position = fileSize;
-
-        openingFiles[id]->Seek(position);
-
-        return position;
+        return openingFiles[id]->Seek(position);
     }
 };
 

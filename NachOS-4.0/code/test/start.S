@@ -146,21 +146,21 @@ Seek:
 	j	$31
 	.end Seek
 
-        .globl ThreadFork
-        .ent    ThreadFork
+  .globl ThreadFork
+  .ent    ThreadFork
 ThreadFork:
-        addiu $2,$0,SC_ThreadFork
-        syscall
-        j       $31
-        .end ThreadFork
+  addiu $2,$0,SC_ThreadFork
+  syscall
+  j $31
+  .end ThreadFork
 
-        .globl ThreadYield
-        .ent    ThreadYield
+  .globl ThreadYield
+  .ent    ThreadYield
 ThreadYield:
-        addiu $2,$0,SC_ThreadYield
-        syscall
-        j       $31
-        .end ThreadYield
+  addiu $2,$0,SC_ThreadYield
+  syscall
+  j $31
+  .end ThreadYield
 
 	.globl ThreadExit
 	.ent    ThreadExit
@@ -177,7 +177,63 @@ ThreadJoin:
 	syscall
 	j 	$31
 	.end ThreadJoin
-	
+
+  .globl ReadNum
+	.ent    ReadNum
+ReadNum:
+	addiu $2, $0, SC_ReadNum
+	syscall
+	j 	$31
+	.end ReadNum
+
+  .globl PrintNum
+	.ent    PrintNum
+PrintNum:
+	addiu $2, $0, SC_PrintNum
+	syscall
+	j 	$31
+	.end PrintNum
+
+  .globl ReadChar
+	.ent    ReadChar
+ReadChar:
+	addiu $2, $0, SC_ReadChar
+	syscall
+	j 	$31
+	.end ReadChar
+
+  .globl PrintChar
+  .ent    PrintChar
+PrintChar:
+	addiu $2, $0, SC_PrintChar
+	syscall
+	j 	$31
+	.end PrintChar
+
+  .globl RandomNum
+  .ent    RandomNum
+RandomNum:
+	addiu $2, $0, SC_RandomNum
+	syscall
+	j 	$31
+	.end RandomNum
+
+  .globl ReadString
+  .ent    ReadString
+ReadString:
+	addiu $2, $0, SC_ReadString
+	syscall
+	j 	$31
+	.end ReadString
+
+  .globl PrintString
+  .ent    PrintString
+PrintString:
+	addiu $2, $0, SC_PrintString
+	syscall
+	j 	$31
+	.end PrintString
+
 /* dummy function to keep gcc happy */
         .globl  __main
         .ent    __main

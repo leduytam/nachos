@@ -1,1 +1,10 @@
-.vscode
+.vscode/
+*.o
+*.coff
+NachOS-4.0/code/build.linux/DISK_0
+NachOS-4.0/code/build.linux/nachos
+NachOS-4.0/code/test/*
+!NachOS-4.0/code/test/script
+!NachOS-4.0/code/test/Makefile
+!NachOS-4.0/code/test/*.c
+!NachOS-4.0/code/test/Makefile.dep

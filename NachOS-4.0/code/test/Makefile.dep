@@ -58,6 +58,3 @@ endif
 # COFF2NOFF = ../../coff2noff.mipsUltrix
 #hosttype = MacOS
 #endif
-
-
-
