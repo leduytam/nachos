@@ -2,50 +2,43 @@
 
 int main()
 {
-  char filename[100];
+  char filename[] = "../test/input.txt";
   int result;
   OpenFileId id;
   int i;
-  char buffer[100];
+  char s[100];
 
   // PrintString("Enter file name: ");
   // ReadString(filename, 100);
 
-  // result = Create(filename);
+  // Create file if not exist
+  if (Create(filename) == 0)
+  {
+    PrintString(filename);
+    PrintString(" is created.\n");
+  }
 
-  // if (result == -1)
-  // {
-  //   PrintString("Create file failed.\n");
-  // }
-  // else
-  // {
-  //   PrintString("Created file.\n");
-  // }
-
-  PrintString("Enter file name: ");
-  ReadString(filename, 100);
-
+  // Open file
   id = Open(filename);
 
   if (id == -1)
   {
     PrintString("Open file failed.\n");
+    Halt();
   }
-  else
-  {
-    PrintString("Opened file.\n");
 
-    // for (i = 0; i < 10; i++)
-    // {
-    //   Write("Hello World!\n", 13, id);
-    // }
+  // Write to file
+  PrintString("Enter a string to write to file: ");
+  ReadString(s, 100);
+  Write(s, 100, id);
+  Write("\nNext line\n", 100, id);
 
-    while (Read(buffer, 100, id) > 0)
-      PrintString(buffer);
-    PrintString("\n");
+  Seek(0, id);
 
-    Close(id);
-  }
+  while (Read(s, 100, id) != 0)
+    PrintString(s);
+
+  Close(id);
 
   Halt();
 }

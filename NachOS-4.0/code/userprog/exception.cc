@@ -49,8 +49,7 @@
 //----------------------------------------------------------------------
 
 char* User2System(int addr);
-char* User2System(int addr, int length);
-int System2User(int addr, int length, char* buffer);
+void System2User(int addr, char* buffer);
 
 void SysHaltHandler();
 void SysAddHandler();
@@ -78,7 +77,9 @@ ExceptionHandler(ExceptionType which)
 
     switch (which) {
     case NoException:
-        return;
+        kernel->interrupt->setStatus(SystemMode);
+        DEBUG(dbgSys, "Switch to system mode\n");
+        break;
     case SyscallException:
         switch (type) {
         case SC_Halt:
@@ -174,35 +175,12 @@ char* User2System(int addr)
     return buffer;
 }
 
-char* User2System(int addr, int length)
+void System2User(int addr, char* buffer)
 {
-    if (length <= 0)
-        return NULL;
-
-    char* buffer = new char[length + 1];
-
     if (buffer == NULL)
-        return NULL;
-
-    buffer[length] = '\0';
-
-    for (int i = 0, c = 0; i < length; i++) {
-        if (!kernel->machine->ReadMem(addr + i, 1, &c))
-        {
-            delete[] buffer;
-            return NULL;
-        }
-
-        buffer[i] = (char)c;
-    }
-
-    return buffer;
-}
-
-void System2User(int addr, char* buffer, int length)
-{
-    if (length <= 0)
         return;
+
+    int length = strlen(buffer) + 1;
 
     for (int i = 0; i < length; i++)
         kernel->machine->WriteMem(addr + i, 1, buffer[i]);
@@ -258,7 +236,6 @@ void SysPrintNumHandler()
     return IncreasePC();
 }
 
-// TODO: check input empty char
 void SysReadCharHandler()
 {
     kernel->machine->WriteRegister(2, (int)SysReadChar());
@@ -281,11 +258,10 @@ void SysReadStringHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
     int length = kernel->machine->ReadRegister(5);
-    char* buffer = User2System(addr, length);
 
-    SysReadString(buffer, length);
+    char* buffer = SysReadString(length);
 
-    System2User(addr, buffer, length);
+    System2User(addr, buffer);
 
     delete[] buffer;
 
@@ -340,14 +316,14 @@ void SysCloseHandler()
 void SysReadHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
-    int size = kernel->machine->ReadRegister(5);
+    int length = kernel->machine->ReadRegister(5);
     int id = kernel->machine->ReadRegister(6);
 
-    char* buffer = User2System(addr, size);
+    char* buffer = SysRead(length, id);
 
-    kernel->machine->WriteRegister(2, (int)SysRead(buffer, size, id));
+    kernel->machine->WriteRegister(2, buffer ? strlen(buffer) : 0);
 
-    System2User(addr, buffer, size);
+    System2User(addr, buffer);
 
     delete[] buffer;
 
@@ -357,12 +333,12 @@ void SysReadHandler()
 void SysWriteHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
-    int size = kernel->machine->ReadRegister(5);
+    int length = kernel->machine->ReadRegister(5);
     int id = kernel->machine->ReadRegister(6);
 
-    char* buffer = User2System(addr, size);
+    char* buffer = User2System(addr);
 
-    kernel->machine->WriteRegister(2, (int)SysWrite(buffer, size, id));
+    kernel->machine->WriteRegister(2, (int)SysWrite(buffer, id));
 
     delete[] buffer;
 

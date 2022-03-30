@@ -42,16 +42,14 @@
 #define CONSOLE_OUTUT 1
 
 #ifdef FILESYS_STUB 
-
-typedef int OpenFileId;
 // Temporarily implement file system calls as 
 // calls to UNIX, until the real file system
 // implementation is available
 
+typedef int OpenFileId;
+
 class FileSystem {
 public:
-    OpenFile** openingFiles;
-
     FileSystem()
     {
         openingFiles = new OpenFile * [MAX_OPEN_FILES];
@@ -68,21 +66,52 @@ public:
         delete[] openingFiles;
     }
 
-    bool Create(char* name)
+    int Create(char* name)
     {
-        int fileDescriptor = OpenForWrite(name);
+        if (name == NULL)
+            return -1;
 
-        if (fileDescriptor == -1) return false;
+        // OpenForWrite has a bug when file is already existed so we use OpenForReadWrite to check file is existed
+        int fileDescriptor = OpenForReadWrite(name, FALSE);
+
+        // If file is existed, return -1
+        if (fileDescriptor != -1) return -1;
         Close(fileDescriptor);
-        return true;
+
+        // If not existed, create file with OpenForWrite
+        fileDescriptor = OpenForWrite(name);
+
+        if (fileDescriptor == -1) return -1;
+        Close(fileDescriptor);
+
+        return 0;
     }
 
     OpenFile* Open(char* name)
     {
-        int fileDescriptor = OpenForReadWrite(name, false);
+        int fileDescriptor = OpenForReadWrite(name, FALSE);
 
         if (fileDescriptor == -1) return NULL;
         return new OpenFile(fileDescriptor, name);
+    }
+
+
+    OpenFileId OpenGetId(char* name)
+    {
+        if (name == NULL || strlen(name) == 0)
+            return -1;
+
+        if (IsOpened(name))
+            return -1;
+
+        OpenFileId id = GetFreeId();
+
+        if (id == -1)
+            return -1;
+
+        openingFiles[id] = Open(name);
+
+        return id;
     }
 
     bool Close(OpenFileId id)
@@ -99,26 +128,13 @@ public:
         return true;
     }
 
-    OpenFileId GetOpenFileId()
-    {
-        for (int i = 2; i < MAX_OPEN_FILES; i++)
-            if (openingFiles[i] == NULL)
-                return i;
-        return -1;
-    }
-
-    bool Remove(char* name)
-    {
-        return Unlink(name) == 0;
-    }
-
     int Read(char* buffer, int size, OpenFileId id)
     {
         if (id < 2 || id >= MAX_OPEN_FILES)
-            return -1;
+            return 0;
 
         if (openingFiles[id] == NULL)
-            return -1;
+            return 0;
 
         return openingFiles[id]->Read(buffer, size);
     }
@@ -126,10 +142,10 @@ public:
     int Write(char* buffer, int size, OpenFileId id)
     {
         if (id < 2 || id >= MAX_OPEN_FILES)
-            return -1;
+            return 0;
 
         if (openingFiles[id] == NULL)
-            return -1;
+            return 0;
 
         return openingFiles[id]->Write(buffer, size);
     }
@@ -143,6 +159,46 @@ public:
             return -1;
 
         return openingFiles[id]->Seek(position);
+    }
+
+    int Remove(char* name)
+    {
+        if (name == NULL || strlen(name) == 0)
+            return -1;
+
+        if (IsOpened(name)) return -1;
+
+        return Unlink(name) == 0;
+    }
+private:
+    OpenFile** openingFiles;
+
+    int GetFreeId()
+    {
+        for (int i = 2; i < MAX_OPEN_FILES; i++)
+            if (openingFiles[i] == NULL)
+                return i;
+
+        return -1;
+    }
+
+    OpenFileId GetIdByName(char* name)
+    {
+        for (int i = 2; i < MAX_OPEN_FILES; i++)
+            if (openingFiles[i] != NULL && strcmp(openingFiles[i]->GetName(), name) == 0)
+                return i;
+
+        return -1;
+    }
+
+    bool IsOpened(char* name)
+    {
+        return GetIdByName(name) != -1;
+    }
+
+    bool IsFreeId(OpenFileId id)
+    {
+        return id >= 2 && id < MAX_OPEN_FILES&& openingFiles[id] == NULL;
     }
 };
 
