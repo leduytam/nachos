@@ -43,6 +43,7 @@ public:
         file = f;
         currentOffset = 0;
         this->name = new char[strlen(name) + 1];
+        strcpy(this->name, name);
     } // open the file
 
     ~OpenFile()

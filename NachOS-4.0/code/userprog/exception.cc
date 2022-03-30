@@ -347,6 +347,8 @@ void SysReadHandler()
 
     kernel->machine->WriteRegister(2, (int)SysRead(buffer, size, id));
 
+    System2User(addr, buffer, size);
+
     delete[] buffer;
 
     return IncreasePC();

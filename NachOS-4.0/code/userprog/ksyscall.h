@@ -303,7 +303,12 @@ int SysRead(char* buffer, int size, OpenFileId id)
 
     DEBUG(dbgSys, "SysRead: Read successfully from " << kernel->fileSystem->openingFiles[id]->GetName() << "\n");
 
-    return kernel->fileSystem->Read(buffer, size, id);
+    int count = kernel->fileSystem->Read(buffer, size, id);
+
+    if (count != size)
+        buffer[count] = '\0';
+
+    return count;
 }
 
 int SysWrite(char* buffer, int size, OpenFileId id)
