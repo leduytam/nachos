@@ -221,7 +221,6 @@ void IncreasePC()
     kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
 }
 
-// TODO: implements all syscall handlers here
 void SysHaltHandler()
 {
     DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
@@ -285,6 +284,8 @@ void SysReadStringHandler()
     char* buffer = User2System(addr, length);
 
     SysReadString(buffer, length);
+
+    System2User(addr, buffer, length);
 
     delete[] buffer;
 

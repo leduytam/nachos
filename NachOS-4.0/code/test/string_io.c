@@ -2,13 +2,12 @@
 
 int main()
 {
-  char c;
+  char str[100];
 
-  PrintString("Enter a character: ");
-  c = ReadChar();
-
+  PrintString("Enter a string: ");
+  ReadString(str, 100);
   PrintString("You entered: ");
-  PrintChar(c);
+  PrintString(str);
   PrintString("\n");
 
   Halt();
