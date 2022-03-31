@@ -95,7 +95,6 @@ public:
         return new OpenFile(fileDescriptor, name);
     }
 
-
     OpenFileId OpenGetId(char* name)
     {
         if (name == NULL || strlen(name) == 0)
@@ -110,6 +109,9 @@ public:
             return -1;
 
         openingFiles[id] = Open(name);
+
+        if (openingFiles[id] == NULL)
+            return -1;
 
         return id;
     }
@@ -168,7 +170,7 @@ public:
 
         if (IsOpened(name)) return -1;
 
-        return Unlink(name) == 0;
+        return Unlink(name);
     }
 private:
     OpenFile** openingFiles;

@@ -32,6 +32,9 @@ Output: 0 (Overflow)
 Input: +55
 Output: 55
 
+Input:    5
+Output: 5
+
 PASSED
 */
 

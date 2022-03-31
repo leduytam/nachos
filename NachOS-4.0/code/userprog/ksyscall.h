@@ -35,10 +35,11 @@ int SysReadNum()
     {
         char c = kernel->synchConsoleIn->GetChar();
 
-        if (c == ' ' || c == '\n' || c == EOF)
+        if ((c == ' ' && buffer != "") || c == '\n' || c == EOF)
             break;
 
-        buffer.push_back(c);
+        if (c != ' ')
+            buffer.push_back(c);
     }
 
     if (buffer.length() == 0)
@@ -109,8 +110,7 @@ void SysPrintChar(char character)
 
 int SysRandomNum()
 {
-    srand(time(NULL));
-    return random();
+    return RandomNumber();
 }
 
 char* SysReadString(int length)

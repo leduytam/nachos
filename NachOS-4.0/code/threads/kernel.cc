@@ -24,9 +24,12 @@
 //	for the initialization (see also comments in main.cc)  
 //----------------------------------------------------------------------
 
-Kernel::Kernel(int argc, char **argv)
+Kernel::Kernel(int argc, char** argv)
 {
-    randomSlice = FALSE; 
+    // seed the random number generator
+    RandomInit((unsigned)time(NULL));
+
+    randomSlice = FALSE;
     debugUserProg = FALSE;
     consoleIn = NULL;          // default is stdin
     consoleOut = NULL;         // default is stdout
@@ -38,42 +41,49 @@ Kernel::Kernel(int argc, char **argv)
                                 // 0 is the default machine id
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-rs") == 0) {
- 	    ASSERT(i + 1 < argc);
-	    RandomInit(atoi(argv[i + 1]));// initialize pseudo-random
-					// number generator
-	    randomSlice = TRUE;
-	    i++;
-        } else if (strcmp(argv[i], "-s") == 0) {
+            ASSERT(i + 1 < argc);
+            RandomInit(atoi(argv[i + 1]));// initialize pseudo-random
+                        // number generator
+            randomSlice = TRUE;
+            i++;
+        }
+        else if (strcmp(argv[i], "-s") == 0) {
             debugUserProg = TRUE;
-	} else if (strcmp(argv[i], "-ci") == 0) {
-	    ASSERT(i + 1 < argc);
-	    consoleIn = argv[i + 1];
-	    i++;
-	} else if (strcmp(argv[i], "-co") == 0) {
-	    ASSERT(i + 1 < argc);
-	    consoleOut = argv[i + 1];
-	    i++;
+        }
+        else if (strcmp(argv[i], "-ci") == 0) {
+            ASSERT(i + 1 < argc);
+            consoleIn = argv[i + 1];
+            i++;
+        }
+        else if (strcmp(argv[i], "-co") == 0) {
+            ASSERT(i + 1 < argc);
+            consoleOut = argv[i + 1];
+            i++;
 #ifndef FILESYS_STUB
-	} else if (strcmp(argv[i], "-f") == 0) {
-	    formatFlag = TRUE;
+        }
+        else if (strcmp(argv[i], "-f") == 0) {
+            formatFlag = TRUE;
 #endif
-        } else if (strcmp(argv[i], "-n") == 0) {
+        }
+        else if (strcmp(argv[i], "-n") == 0) {
             ASSERT(i + 1 < argc);   // next argument is float
             reliability = atof(argv[i + 1]);
             i++;
-        } else if (strcmp(argv[i], "-m") == 0) {
+        }
+        else if (strcmp(argv[i], "-m") == 0) {
             ASSERT(i + 1 < argc);   // next argument is int
             hostName = atoi(argv[i + 1]);
             i++;
-        } else if (strcmp(argv[i], "-u") == 0) {
+        }
+        else if (strcmp(argv[i], "-u") == 0) {
             cout << "Partial usage: nachos [-rs randomSeed]\n";
-	    cout << "Partial usage: nachos [-s]\n";
+            cout << "Partial usage: nachos [-s]\n";
             cout << "Partial usage: nachos [-ci consoleIn] [-co consoleOut]\n";
 #ifndef FILESYS_STUB
-	    cout << "Partial usage: nachos [-nf]\n";
+            cout << "Partial usage: nachos [-nf]\n";
 #endif
             cout << "Partial usage: nachos [-n #] [-m #]\n";
-	}
+        }
     }
 }
 
@@ -90,7 +100,7 @@ Kernel::Initialize()
     // We didn't explicitly allocate the current thread we are running in.
     // But if it ever tries to give up the CPU, we better have a Thread
     // object to save its state. 
-    currentThread = new Thread("main");		
+    currentThread = new Thread("main");
     currentThread->setStatus(RUNNING);
 
     stats = new Statistics();		// collect statistics
@@ -130,7 +140,7 @@ Kernel::~Kernel()
     delete fileSystem;
     delete postOfficeIn;
     delete postOfficeOut;
-    
+
     Exit(0);
 }
 
@@ -141,23 +151,23 @@ Kernel::~Kernel()
 
 void
 Kernel::ThreadSelfTest() {
-   Semaphore *semaphore;
-   SynchList<int> *synchList;
-   
-   LibSelfTest();		// test library routines
-   
-   currentThread->SelfTest();	// test thread switching
-   
-   				// test semaphore operation
-   semaphore = new Semaphore("test", 0);
-   semaphore->SelfTest();
-   delete semaphore;
-   
-   				// test locks, condition variables
-				// using synchronized lists
-   synchList = new SynchList<int>;
-   synchList->SelfTest(9);
-   delete synchList;
+    Semaphore* semaphore;
+    SynchList<int>* synchList;
+
+    LibSelfTest();		// test library routines
+
+    currentThread->SelfTest();	// test thread switching
+
+                 // test semaphore operation
+    semaphore = new Semaphore("test", 0);
+    semaphore->SelfTest();
+    delete semaphore;
+
+    // test locks, condition variables
+    // using synchronized lists
+    synchList = new SynchList<int>;
+    synchList->SelfTest(9);
+    delete synchList;
 
 }
 
@@ -170,14 +180,14 @@ void
 Kernel::ConsoleTest() {
     char ch;
 
-    cout << "Testing the console device.\n" 
+    cout << "Testing the console device.\n"
         << "Typed characters will be echoed, until ^D is typed.\n"
         << "Note newlines are needed to flush input through UNIX.\n";
     cout.flush();
 
     do {
         ch = synchConsoleIn->GetChar();
-        if(ch != EOF) synchConsoleOut->PutChar(ch);   // echo it!
+        if (ch != EOF) synchConsoleOut->PutChar(ch);   // echo it!
     } while (ch != EOF);
 
     cout << "\n";
@@ -202,28 +212,28 @@ Kernel::NetworkTest() {
 
     if (hostName == 0 || hostName == 1) {
         // if we're machine 1, send to 0 and vice versa
-        int farHost = (hostName == 0 ? 1 : 0); 
+        int farHost = (hostName == 0 ? 1 : 0);
         PacketHeader outPktHdr, inPktHdr;
         MailHeader outMailHdr, inMailHdr;
-        char *data = "Hello there!";
-        char *ack = "Got it!";
+        char* data = "Hello there!";
+        char* ack = "Got it!";
         char buffer[MaxMailSize];
 
         // construct packet, mail header for original message
         // To: destination machine, mailbox 0
         // From: our machine, reply to: mailbox 1
-        outPktHdr.to = farHost;         
+        outPktHdr.to = farHost;
         outMailHdr.to = 0;
         outMailHdr.from = 1;
         outMailHdr.length = strlen(data) + 1;
 
         // Send the first message
-        postOfficeOut->Send(outPktHdr, outMailHdr, data); 
+        postOfficeOut->Send(outPktHdr, outMailHdr, data);
 
         // Wait for the first message from the other machine
         postOfficeIn->Receive(0, &inPktHdr, &inMailHdr, buffer);
-        cout << "Got: " << buffer << " : from " << inPktHdr.from << ", box " 
-                                                << inMailHdr.from << "\n";
+        cout << "Got: " << buffer << " : from " << inPktHdr.from << ", box "
+            << inMailHdr.from << "\n";
         cout.flush();
 
         // Send acknowledgement to the other machine (using "reply to" mailbox
@@ -231,15 +241,14 @@ Kernel::NetworkTest() {
         outPktHdr.to = inPktHdr.from;
         outMailHdr.to = inMailHdr.from;
         outMailHdr.length = strlen(ack) + 1;
-        postOfficeOut->Send(outPktHdr, outMailHdr, ack); 
+        postOfficeOut->Send(outPktHdr, outMailHdr, ack);
 
         // Wait for the ack from the other machine to the first message we sent
-	postOfficeIn->Receive(1, &inPktHdr, &inMailHdr, buffer);
-        cout << "Got: " << buffer << " : from " << inPktHdr.from << ", box " 
-                                                << inMailHdr.from << "\n";
+        postOfficeIn->Receive(1, &inPktHdr, &inMailHdr, buffer);
+        cout << "Got: " << buffer << " : from " << inPktHdr.from << ", box "
+            << inMailHdr.from << "\n";
         cout.flush();
     }
 
     // Then we're done!
 }
-

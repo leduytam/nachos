@@ -337,6 +337,7 @@ void SysWriteHandler()
     int id = kernel->machine->ReadRegister(6);
 
     char* buffer = User2System(addr);
+    buffer[length] = '\0';
 
     kernel->machine->WriteRegister(2, (int)SysWrite(buffer, id));
 

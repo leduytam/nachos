@@ -112,7 +112,7 @@ ifeq ($(hosttype),unknown)
 PROGRAMS = unknownhost
 else
 # change this if you create a new test program!
-PROGRAMS = add halt shell matmult sort segments num_io char_io rand_int string_io file_io file_create
+PROGRAMS = add halt shell matmult sort segments num_io char_io rand_int string_io file_io help ascii sort create_file cat copy delete
 endif
 
 all: $(PROGRAMS)
@@ -188,11 +188,41 @@ file_io: file_io.o start.o
 	$(LD) $(LDFLAGS) start.o file_io.o -o file_io.coff
 	$(COFF2NOFF) file_io.coff file_io
 
-file_create.o: file_create.c
-	$(CC) $(CFLAGS) -c file_create.c
-file_create: file_create.o start.o
-	$(LD) $(LDFLAGS) start.o file_create.o -o file_create.coff
-	$(COFF2NOFF) file_create.coff file_create
+help.o: help.c
+	$(CC) $(CFLAGS) -c help.c
+help: help.o start.o
+	$(LD) $(LDFLAGS) start.o help.o -o help.coff
+	$(COFF2NOFF) help.coff help
+
+ascii.o: ascii.c
+	$(CC) $(CFLAGS) -c ascii.c
+ascii: ascii.o start.o
+	$(LD) $(LDFLAGS) start.o ascii.o -o ascii.coff
+	$(COFF2NOFF) ascii.coff ascii
+
+create_file.o: create_file.c
+	$(CC) $(CFLAGS) -c create_file.c
+create_file: create_file.o start.o
+	$(LD) $(LDFLAGS) start.o create_file.o -o create_file.coff
+	$(COFF2NOFF) create_file.coff create_file
+
+cat.o: cat.c
+	$(CC) $(CFLAGS) -c cat.c
+cat: cat.o start.o
+	$(LD) $(LDFLAGS) start.o cat.o -o cat.coff
+	$(COFF2NOFF) cat.coff cat
+
+copy.o: copy.c
+	$(CC) $(CFLAGS) -c copy.c
+copy: copy.o start.o
+	$(LD) $(LDFLAGS) start.o copy.o -o copy.coff
+	$(COFF2NOFF) copy.coff copy
+
+delete.o: delete.c
+	$(CC) $(CFLAGS) -c delete.c
+delete: delete.o start.o
+	$(LD) $(LDFLAGS) start.o delete.o -o delete.coff
+	$(COFF2NOFF) delete.coff delete
 
 clean:
 	$(RM) -f *.o *.ii

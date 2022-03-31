@@ -19,20 +19,20 @@ PASSED
 
 int main()
 {
-    char buffer[100];
-    OpenFileId id;
+  char buffer[100];
+  OpenFileId id;
 
-    PrintString("Enter file name: ");
-    ReadString(buffer, 100);
+  PrintString("Enter file path: ");
+  ReadString(buffer, 100);
 
-    id = Create(buffer);
+  id = Create(buffer);
 
-    PrintString(buffer);
+  PrintString(buffer);
 
-    if (id == -1)
-        PrintString(" is exist or opening \n");
-    else
-        PrintString(" is created successfully.\n");
+  if (id == -1)
+    PrintString(" is exist or opening \n");
+  else
+    PrintString(" is created successfully.\n");
 
-    Halt();
+  Halt();
 }
