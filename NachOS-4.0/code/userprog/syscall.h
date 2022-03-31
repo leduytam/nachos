@@ -59,24 +59,51 @@
   /* Stop Nachos, and print out performance stats */
 void Halt();
 
+/** Read a number from keyboard
+ *
+ * @return number read if valid, 0 otherwise
+ */
 int ReadNum();
 
+/** Print a number to the console
+ *
+ * @param number number to print
+ */
 void PrintNum(int number);
 
+/** Read a character from keyboard
+ *
+ * @return character read
+ */
 char ReadChar();
 
+/** Print a character to the console
+ *
+ * @param character character to print
+ */
 void PrintChar(char character);
 
+/** Create a random number
+ *
+ * @return random number
+ */
 int RandomNum();
 
+/** Read a string from keyboard
+ *
+ * @return string read
+ */
 void ReadString(char buffer[], int length);
 
+/** Print a string to the console
+ *
+ * @param string string to print
+ */
 void PrintString(char buffer[]);
 
 /*
  * Add the two operants and return the result
  */
-
 int Add(int op1, int op2);
 
 /* Address space control operations: Exit, Exec, Execv, and Join */
@@ -164,7 +191,6 @@ int Seek(int position, OpenFileId id);
  * Return 1 on success, negative error code on failure
  */
 int Close(OpenFileId id);
-
 
 /* User-level thread operations: Fork and Yield.  To allow multiple
  * threads to run within a user program.

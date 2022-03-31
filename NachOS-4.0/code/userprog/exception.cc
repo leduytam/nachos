@@ -137,6 +137,14 @@ ExceptionHandler(ExceptionType which)
     ASSERTNOTREACHED();
 }
 
+/** Get string from user space.
+ *  @param addr The address of the string in user space.
+ *  @return string but in kernel space.
+ *  @idea count the length of the string through kernel->machine->ReadMem()
+ *        then allocate dynamic memory for the string
+ *        then read the string from user space to kernel space
+ *        then return it
+ */
 char* User2System(int addr)
 {
     char* buffer = NULL;
@@ -175,6 +183,12 @@ char* User2System(int addr)
     return buffer;
 }
 
+/** Put string to user space.
+ *  @param addr The address of the string in user space.
+ *  @param buffer The string to be put in user space.
+ *  @idea if buffer is NULL, do nothing (the result string in user space is empty or NULL)
+ *        else put the string to user space
+ */
 void System2User(int addr, char* buffer)
 {
     if (buffer == NULL)
@@ -186,7 +200,7 @@ void System2User(int addr, char* buffer)
         kernel->machine->WriteMem(addr + i, 1, buffer[i]);
 }
 
-// increase program counter to next instruction
+/** Increase program counter to next instruction. */
 void IncreasePC()
 {
     /* set previous programm counter (debugging only)*/
@@ -199,6 +213,7 @@ void IncreasePC()
     kernel->machine->WriteRegister(NextPCReg, kernel->machine->ReadRegister(PCReg) + 4);
 }
 
+/** Handle halt system call. */
 void SysHaltHandler()
 {
     DEBUG(dbgSys, "Shutdown, initiated by user program.\n");
@@ -208,6 +223,7 @@ void SysHaltHandler()
     ASSERTNOTREACHED();
 }
 
+/** Handle add system call. */
 void SysAddHandler()
 {
     DEBUG(dbgSys, "Add " << kernel->machine->ReadRegister(4) << " + " << kernel->machine->ReadRegister(5) << "\n");
@@ -224,36 +240,64 @@ void SysAddHandler()
     return IncreasePC();
 }
 
+/** Handle read number system call.
+ * @idea read number from keyboard by using SysReadNum() and add it to register 2
+ *       increase pc
+ */
 void SysReadNumHandler()
 {
     kernel->machine->WriteRegister(2, (int)SysReadNum());
     return IncreasePC();
 }
 
+/** Handle print number system call.
+ * @idea get number from register 4 and print it to console by using SysPrintNum()
+ *       increase pc
+ */
 void SysPrintNumHandler()
 {
     SysPrintNum((int)kernel->machine->ReadRegister(4));
     return IncreasePC();
 }
 
+/** Handle read character system call.
+ * @idea read character from keyboard by using SysReadChar() and add it to register 2
+ *       increase pc
+ */
 void SysReadCharHandler()
 {
     kernel->machine->WriteRegister(2, (int)SysReadChar());
     return IncreasePC();
 }
 
+/** Handle print character system call.
+ * @idea get character from register 4 and print it to console by using SysPrintChar()
+ *       increase pc
+ */
 void SysPrintCharHandler()
 {
     SysPrintChar((char)kernel->machine->ReadRegister(4));
     return IncreasePC();
 }
 
+/** Handle random number system call.
+ * @idea get random number by using SysRandomNum() and add it to register 2
+ *       increase pc
+ */
 void SysRandomNumHandler()
 {
     kernel->machine->WriteRegister(2, (int)SysRandomNum());
     return IncreasePC();
 }
 
+/** Handle read string system call.
+ * @idea get virtual address of string from register 4
+ *       get length of string from register 5
+ *       get string from keyboard by using SysReadString()
+ *       put string to user space by using System2User()
+ *       delete string buffer in kernel space
+ *       increase pc
+ */
 void SysReadStringHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
@@ -268,6 +312,13 @@ void SysReadStringHandler()
     return IncreasePC();
 }
 
+/** Handle print string system call.
+ * @idea get virtual address of string from register 4
+ *       get string from user space by using User2System()
+ *       print string to console by using SysPrintString()
+ *       delete string buffer in kernel space
+ *       increase pc
+ */
 void SysPrintStringHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
@@ -280,6 +331,13 @@ void SysPrintStringHandler()
     return IncreasePC();
 }
 
+/** Handle create file system call.
+ * @idea get virtual address of file name from register 4
+ *       get file name from user space by using User2System()
+ *       create file by using SysCreateFile()
+ *       delete file name buffer in kernel space
+ *       increase pc
+ */
 void SysCreateHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
@@ -292,6 +350,13 @@ void SysCreateHandler()
     return IncreasePC();
 }
 
+/** Handle open file system call.
+ * @idea get virtual address of file name from register 4
+ *       get file name from user space by using User2System()
+ *       open file by using SysOpenFile()
+ *       delete file name buffer in kernel space
+ *       increase pc
+ */
 void SysOpenHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
@@ -304,6 +369,11 @@ void SysOpenHandler()
     return IncreasePC();
 }
 
+/** Handle close file system call.
+ * @idea get file id from register 4
+ *       close file by using SysCloseFile()
+ *       increase pc
+ */
 void SysCloseHandler()
 {
     int id = kernel->machine->ReadRegister(4);
@@ -313,6 +383,15 @@ void SysCloseHandler()
     return IncreasePC();
 }
 
+/** Handle read file system call.
+ * @idea get virtual address of buffer from register 4
+ *       get length of buffer from register 5
+ *       get file id from register 6
+ *       read file by using SysReadFile()
+ *       put buffer to user space by using System2User()
+ *       delete buffer buffer in kernel space
+ *       increase pc
+ */
 void SysReadHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
@@ -330,6 +409,14 @@ void SysReadHandler()
     return IncreasePC();
 }
 
+/** Handle write file system call.
+ * @idea get virtual address of buffer from register 4
+ *       get length of buffer from register 5
+ *       get file id from register 6
+ *       get string to write from user space by using User2System()
+ *       write file by using SysWriteFile()
+ *       increase pc
+ */
 void SysWriteHandler()
 {
     int addr = kernel->machine->ReadRegister(4);
@@ -346,6 +433,12 @@ void SysWriteHandler()
     return IncreasePC();
 }
 
+/** Handle seek file system call.
+ * @idea get position from register 4
+ *       get file id from register 5
+ *       seek file by using SysSeekFile()
+ *       increase pc
+ */
 void SysSeekHandler()
 {
     int position = kernel->machine->ReadRegister(4);
@@ -356,6 +449,13 @@ void SysSeekHandler()
     return IncreasePC();
 }
 
+/** Handle remove file system call.
+ * @idea get virtual address of file name from register 4
+ *       get file name from user space by using User2System()
+ *       remove file by using SysRemoveFile()
+ *       delete file name buffer in kernel space
+ *       increase pc
+ */
 void SysRemoveHandler()
 {
     int addr = kernel->machine->ReadRegister(4);

@@ -52,6 +52,7 @@ class FileSystem {
 public:
     FileSystem()
     {
+        // create array of open files
         openingFiles = new OpenFile * [MAX_OPEN_FILES];
 
         for (int i = 0; i < MAX_OPEN_FILES; i++)
@@ -66,9 +67,18 @@ public:
         delete[] openingFiles;
     }
 
+    /** Create a file
+     *
+     * @param name file name
+     * @return 0 if successful, -1 otherwise (e.g. file already exists)
+     * @idea if name is invalid then return -1
+     *       if file is already exist then return -1
+     *       if fileDescriptor == -1 when OpenForWrite then return -1 (e.g. no more space)
+     *       otherwise create a new file and return 0
+     */
     int Create(char* name)
     {
-        if (name == NULL)
+        if (name == NULL || strlen(name) == 0)
             return -1;
 
         // OpenForWrite has a bug when file is already existed so we use OpenForReadWrite to check file is existed
@@ -81,12 +91,14 @@ public:
         // If not existed, create file with OpenForWrite
         fileDescriptor = OpenForWrite(name);
 
+        // Create failed
         if (fileDescriptor == -1) return -1;
         Close(fileDescriptor);
 
         return 0;
     }
 
+    // Default
     OpenFile* Open(char* name)
     {
         int fileDescriptor = OpenForReadWrite(name, FALSE);
@@ -95,6 +107,16 @@ public:
         return new OpenFile(fileDescriptor, name);
     }
 
+    /** Open a file
+     *
+     * @param name file name
+     * @return file id if successful, -1 otherwise
+     * @idea if name is not valid, return -1
+     *       if file is opened, return -1
+     *       if max number of files is reached, return -1
+     *       if file is not existed, return -1
+     *       otherwise, open file and return file id
+     */
     OpenFileId OpenGetId(char* name)
     {
         if (name == NULL || strlen(name) == 0)
@@ -116,20 +138,38 @@ public:
         return id;
     }
 
-    bool Close(OpenFileId id)
+    /** Close a file
+     *
+     * @param id file id
+     * @return 0 if successful, -1 otherwise
+     * @idea if id is not valid, return -1
+     *       if file is not opened, return -1
+     *       otherwise, close file and return 0
+     */
+    int Close(OpenFileId id)
     {
         if (id < 2 || id >= MAX_OPEN_FILES)
-            return false;
+            return -1;
 
         if (openingFiles[id] == NULL)
-            return false;
+            return -1;
 
         delete openingFiles[id];
         openingFiles[id] = NULL;
 
-        return true;
+        return 0;
     }
 
+    /** Read from a file
+     *
+     * @param buffer buffer to store data
+     * @param size max size of buffer
+     * @param id file id
+     * @return number of bytes read
+     * @idea if id is not valid, return 0
+     *       if file is not opened, return 0
+     *       otherwise, read data from file and return number of bytes read
+     */
     int Read(char* buffer, int size, OpenFileId id)
     {
         if (id < 2 || id >= MAX_OPEN_FILES)
@@ -141,6 +181,16 @@ public:
         return openingFiles[id]->Read(buffer, size);
     }
 
+    /** Write to a file
+     *
+     * @param buffer buffer to store data
+     * @param size size of buffer
+     * @param id file id
+     * @return number of bytes written
+     * @idea if id is not valid, return 0
+     *       if file is not opened, return 0
+     *       otherwise, write data to file and return number of bytes written
+     */
     int Write(char* buffer, int size, OpenFileId id)
     {
         if (id < 2 || id >= MAX_OPEN_FILES)
@@ -152,6 +202,18 @@ public:
         return openingFiles[id]->Write(buffer, size);
     }
 
+    /** Seek to a position in a file
+     *
+     * @param id file id
+     * @param position position to seek to
+     * @return actual position after seek, -1 if error
+     * @idea if id is not valid, return -1
+     *       if file is not opened, return -1
+     *       if position == -1, set position to end of file
+     *       if position > file size, set position to end of file
+     *       otherwise, seek to position and return position
+     * @note we added openfile->Seek(position) to filesys/openfile.h
+     */
     int Seek(int position, OpenFileId id)
     {
         if (id < 2 || id >= MAX_OPEN_FILES)
@@ -163,6 +225,15 @@ public:
         return openingFiles[id]->Seek(position);
     }
 
+    /** Remove a file
+     *
+     * @param name file name
+     * @return 0 if successful, -1 otherwise
+     * @idea if name is not valid, return -1
+     *       if file is opened, return -1
+     *       if file is not existed, return -1
+     *       otherwise, remove file and return 0
+     */
     int Remove(char* name)
     {
         if (name == NULL || strlen(name) == 0)
@@ -175,6 +246,11 @@ public:
 private:
     OpenFile** openingFiles;
 
+    /** Get a free id
+     *
+     * @return free id if found, -1 otherwise
+     * @idea traverse all id and find a free id
+     */
     int GetFreeId()
     {
         for (int i = 2; i < MAX_OPEN_FILES; i++)
@@ -184,6 +260,15 @@ private:
         return -1;
     }
 
+    /** Get id of a file if is opened
+     *
+     * @param name file name
+     * @return id of file if found, -1 otherwise
+     * @idea traverse all id and compare name with name of file
+     *       if name is same, return id
+     *       otherwise, return -1
+     * @note we added property name to filesys/openfile.h
+     */
     OpenFileId GetIdByName(char* name)
     {
         for (int i = 2; i < MAX_OPEN_FILES; i++)
@@ -193,11 +278,25 @@ private:
         return -1;
     }
 
+    /** Check if a file is opened
+     *
+     * @param name file name
+     * @return TRUE if file is opened, FALSE otherwise
+     * @idea traverse all id and compare name with name of file
+     *       if name is same, return TRUE
+     *       otherwise, return FALSE
+     */
     bool IsOpened(char* name)
     {
         return GetIdByName(name) != -1;
     }
 
+    /** Check an id is free
+     *
+     * @param id file id
+     * @return TRUE if id is free, FALSE otherwise
+     * @idea check if id is in range [2, MAX_OPEN_FILES) and file is NULL
+     */
     bool IsFreeId(OpenFileId id)
     {
         return id >= 2 && id < MAX_OPEN_FILES&& openingFiles[id] == NULL;

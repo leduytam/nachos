@@ -30,21 +30,23 @@
 // See definitions listed under #else
 class OpenFile {
 private:
-    char* name;
+    char* name; // name of file
 public:
+    // default
     OpenFile(int f)
     {
         file = f;
         currentOffset = 0;
     }
 
+    // open a file but need to specify the name
     OpenFile(int f, char* name)
     {
         file = f;
         currentOffset = 0;
         this->name = new char[strlen(name) + 1];
         strcpy(this->name, name);
-    } // open the file
+    }
 
     ~OpenFile()
     {
@@ -75,6 +77,14 @@ public:
         return numWritten;
     }
 
+    /** Set the current offset to position
+     *
+     * @param position the position to set
+     * @return actual position after seek, -1 if error
+     * @idea if position is invalid then return -1
+     *       if position == -1 then set currentOffset to the end of file
+     *       otherwise set currentOffset to position and return position
+     */
     int Seek(int position)
     {
         if (position < -1)
