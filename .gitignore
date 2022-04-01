@@ -8,3 +8,5 @@ NachOS-4.0/code/test/*
 !NachOS-4.0/code/test/Makefile
 !NachOS-4.0/code/test/*.c
 !NachOS-4.0/code/test/Makefile.dep
+NachOS-4.0/coff2noff/coff2noff.o
+NachOS-4.0/coff2noff/coff2noff.x86Linux

@@ -79,6 +79,15 @@ ExceptionHandler(ExceptionType which)
     case NoException:
         kernel->interrupt->setStatus(SystemMode);
         DEBUG(dbgSys, "Switch to system mode\n");
+        return;
+    case PageFaultException:
+    case ReadOnlyException:
+    case BusErrorException:
+    case AddressErrorException:
+    case OverflowException:
+    case IllegalInstrException:
+    case NumExceptionTypes:
+        cerr << "An error occurs. Error Code: " << which << "\n";
         break;
     case SyscallException:
         switch (type) {
@@ -119,21 +128,12 @@ ExceptionHandler(ExceptionType which)
             break;
         }
         break;
-
-    case PageFaultException:
-    case ReadOnlyException:
-    case BusErrorException:
-    case AddressErrorException:
-    case OverflowException:
-    case IllegalInstrException:
-    case NumExceptionTypes:
-        cerr << "An error occurs. Error Code: " << which << "\n";
-        SysHalt();
-        ASSERTNOTREACHED();
     default:
         cerr << "Unexpected user mode exception" << (int)which << "\n";
         break;
     }
+
+    SysHalt();
     ASSERTNOTREACHED();
 }
 
