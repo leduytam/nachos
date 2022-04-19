@@ -89,7 +89,7 @@ public:
         Close(fileDescriptor);
 
         // If not existed, create file with OpenForWrite
-        fileDescriptor = OpenForWrite(name);
+        fileDescriptor = OpenForWrite(name, FALSE);
 
         // Create failed
         if (fileDescriptor == -1) return -1;

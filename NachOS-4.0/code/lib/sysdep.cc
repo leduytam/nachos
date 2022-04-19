@@ -313,6 +313,15 @@ OpenForWrite(char* name)
     return fd;
 }
 
+int
+OpenForWrite(char* name, bool crashOnError)
+{
+    int fd = open(name, O_RDWR | O_CREAT | O_TRUNC, 0666);
+
+    ASSERT(!crashOnError || fd >= 0);
+    return fd;
+}
+
 //----------------------------------------------------------------------
 // OpenForReadWrite
 // 	Open a file for reading or writing.
